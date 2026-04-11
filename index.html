@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ff4d8f" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <title>Request Princess Treatment NOW</title>
+    <meta
+      name="description"
+      content="Compose an image or video with optional audio and overlay text, then share a link to a fullscreen view. No accounts, no backend — all state lives in the URL."
+    />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Request Princess Treatment NOW" />
+    <meta
+      property="og:description"
+      content="Compose an image or video with optional audio and overlay text, then share a link to a fullscreen view."
+    />
+    <meta property="og:image" content="/favicon.svg" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Request Princess Treatment NOW" />
+    <meta
+      name="twitter:description"
+      content="Compose an image or video with optional audio and overlay text, then share a link to a fullscreen view."
+    />
+    <meta name="twitter:image" content="/favicon.svg" />
+
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (stored ? stored === 'dark' : prefersDark)
+            document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
