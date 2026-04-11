@@ -20,9 +20,7 @@ test.describe('Preview', () => {
   });
 
   test('direct video with audio: muted attribute set, audio element present', async ({ page }) => {
-    await page.goto(
-      '/?src=%2Ftest-fixtures%2Fvideo.mp4&audio=%2Ftest-fixtures%2Faudio.mp3'
-    );
+    await page.goto('/?src=%2Ftest-fixtures%2Fvideo.mp4&audio=%2Ftest-fixtures%2Faudio.mp3');
     const video = page.getByTestId(tid.previewVideo);
     await expect(video).toHaveAttribute('muted', /.*/);
     await expect(page.getByTestId(tid.previewAudio)).toHaveCount(1);
@@ -53,9 +51,7 @@ test.describe('Preview', () => {
   });
 
   test('image + audio shows play button; removing audio hides it', async ({ page }) => {
-    await page.goto(
-      '/?src=%2Ftest-fixtures%2Fimage.png&audio=%2Ftest-fixtures%2Faudio.mp3'
-    );
+    await page.goto('/?src=%2Ftest-fixtures%2Fimage.png&audio=%2Ftest-fixtures%2Faudio.mp3');
     await expect(page.getByTestId(tid.previewPlay)).toBeVisible();
     await page.getByTestId(tid.audioInput).fill('');
     await expect(page.getByTestId(tid.previewPlay)).toHaveCount(0);

@@ -22,9 +22,7 @@ async function waitForReady(locator: Locator) {
 
 test.describe('Playback sync', () => {
   test('image + audio: clicking play starts audio and hides play button', async ({ page }) => {
-    await page.goto(
-      '/?src=%2Ftest-fixtures%2Fimage.png&audio=%2Ftest-fixtures%2Faudio.mp3'
-    );
+    await page.goto('/?src=%2Ftest-fixtures%2Fimage.png&audio=%2Ftest-fixtures%2Faudio.mp3');
     const audio = page.getByTestId(tid.previewAudio);
     const playBtn = page.getByTestId(tid.previewPlay);
     await expect(audio).toHaveCount(1);
@@ -40,9 +38,7 @@ test.describe('Playback sync', () => {
   });
 
   test('direct video + audio: clicking play starts both elements', async ({ page }) => {
-    await page.goto(
-      '/?src=%2Ftest-fixtures%2Fvideo.mp4&audio=%2Ftest-fixtures%2Faudio.mp3'
-    );
+    await page.goto('/?src=%2Ftest-fixtures%2Fvideo.mp4&audio=%2Ftest-fixtures%2Faudio.mp3');
     const video = page.getByTestId(tid.previewVideo);
     const audio = page.getByTestId(tid.previewAudio);
     const playBtn = page.getByTestId(tid.previewPlay);
@@ -65,9 +61,7 @@ test.describe('Playback sync', () => {
   });
 
   test('direct video + audio: pausing video pauses audio', async ({ page }) => {
-    await page.goto(
-      '/?src=%2Ftest-fixtures%2Fvideo.mp4&audio=%2Ftest-fixtures%2Faudio.mp3'
-    );
+    await page.goto('/?src=%2Ftest-fixtures%2Fvideo.mp4&audio=%2Ftest-fixtures%2Faudio.mp3');
     const video = page.getByTestId(tid.previewVideo);
     const audio = page.getByTestId(tid.previewAudio);
 
@@ -88,9 +82,7 @@ test.describe('Playback sync', () => {
   });
 
   test('direct video + audio: seeking video resyncs audio currentTime', async ({ page }) => {
-    await page.goto(
-      '/?src=%2Ftest-fixtures%2Fvideo.mp4&audio=%2Ftest-fixtures%2Faudio.mp3'
-    );
+    await page.goto('/?src=%2Ftest-fixtures%2Fvideo.mp4&audio=%2Ftest-fixtures%2Faudio.mp3');
     const video = page.getByTestId(tid.previewVideo);
     const audio = page.getByTestId(tid.previewAudio);
 

@@ -30,12 +30,7 @@ export default function CreatorPage() {
       <main className="flex-1 flex flex-col-reverse md:flex-row gap-6 p-4 md:p-8">
         <section className="flex-shrink-0">
           <ResizablePreview>
-            <Preview
-              src={state.src}
-              audio={state.audio}
-              top={state.top}
-              bottom={state.bottom}
-            />
+            <Preview src={state.src} audio={state.audio} top={state.top} bottom={state.bottom} />
           </ResizablePreview>
         </section>
         <section className="flex-1 flex flex-col gap-4 min-w-0">
