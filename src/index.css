@@ -1,0 +1,45 @@
+@import 'tailwindcss';
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-princess: 'Playfair Display', Georgia, serif;
+  --color-princess-50: #fff5f8;
+  --color-princess-100: #ffe4ec;
+  --color-princess-200: #ffc9da;
+  --color-princess-300: #ffa3c0;
+  --color-princess-400: #ff7aa7;
+  --color-princess-500: #ff4d8f;
+  --color-princess-600: #e03773;
+  --color-princess-700: #b52659;
+  --color-princess-800: #7a1a3b;
+  --color-princess-900: #3d0d1d;
+  --color-princess-950: #1a0610;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  font-family: var(--font-sans);
+  background: var(--color-princess-50);
+  color: var(--color-princess-900);
+}
+.dark body {
+  background: var(--color-princess-950);
+  color: var(--color-princess-100);
+}
+.font-princess {
+  font-family: var(--font-princess);
+}
+.overlay-text {
+  font-family: var(--font-princess);
+  color: var(--color-princess-100);
+  text-shadow:
+    0 0 2px #fff,
+    0 0 6px var(--color-princess-300),
+    0 2px 8px rgba(0, 0, 0, 0.35);
+  letter-spacing: 0.01em;
+}
