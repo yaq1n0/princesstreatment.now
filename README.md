@@ -24,22 +24,21 @@ Navigation between the two preserves the full query string verbatim. The Reset b
 
 ## URL params
 
-| Param    | Values             | Notes                                      |
-| -------- | ------------------ | ------------------------------------------ |
-| `mode`   | `image` \| `video` | Defaults to `image` when missing           |
-| `src`    | URL                | Image, direct video, or YouTube URL        |
-| `audio`  | URL                | Optional audio track played over the media |
-| `top`    | string             | Optional overlay text, top-aligned         |
-| `bottom` | string             | Optional overlay text, bottom-aligned      |
+| Param    | Values | Notes                                      |
+| -------- | ------ | ------------------------------------------ |
+| `src`    | URL    | Image, direct video, or YouTube URL        |
+| `audio`  | URL    | Optional audio track played over the media |
+| `top`    | string | Optional overlay text, top-aligned         |
+| `bottom` | string | Optional overlay text, bottom-aligned      |
 
 Standard `URLSearchParams` encoding. YouTube URLs (`youtube.com/watch?v=`, `youtu.be/`, `youtube.com/shorts/`, `youtube.com/embed/`) are detected and rendered via the privacy-friendly `youtube-nocookie.com` embed.
 
 ### Example links
 
 ```
-/?mode=image&src=https%3A%2F%2Fexample.com%2Fpic.png&top=hello&bottom=world
-/?mode=video&src=https%3A%2F%2Fyoutu.be%2FdQw4w9WgXcQ&audio=https%3A%2F%2Fexample.com%2Ftrack.mp3
-/view?mode=image&src=https%3A%2F%2Fexample.com%2Fpic.png
+/?src=https%3A%2F%2Fexample.com%2Fpic.png&top=hello&bottom=world
+/?&src=https%3A%2F%2Fyoutu.be%2FdQw4w9WgXcQ&audio=https%3A%2F%2Fexample.com%2Ftrack.mp3
+/view&src=https%3A%2F%2Fexample.com%2Fpic.png
 ```
 
 ## Development
@@ -51,19 +50,20 @@ npm run dev          # Vite dev server on :5173
 
 ### Scripts
 
-| Command                | Purpose                                    |
-| ---------------------- | ------------------------------------------ |
-| `npm run dev`          | Dev server on the default Vite port        |
-| `npm run dev:e2e`      | Dev server on `:5273` (used by Playwright) |
-| `npm run build`        | Typecheck + production build to `dist/`    |
-| `npm run preview`      | Serve the built bundle locally             |
-| `npm run typecheck`    | `tsc -b` only, no emit                     |
-| `npm run lint`         | ESLint over `src/` and `tests/`            |
-| `npm run lint:fix`     | ESLint with `--fix`                        |
-| `npm run format`       | Prettier write across the repo             |
-| `npm run format:check` | Prettier check (used in CI)                |
-| `npm test`             | Run Playwright E2E tests                   |
-| `npm run test:ui`      | Playwright UI mode                         |
+| Command               | Purpose                                    |
+| --------------------- | ------------------------------------------ |
+| `npm run dev`         | Dev server on the default Vite port        |
+| `npm run dev:e2e`     | Dev server on `:5273` (used by Playwright) |
+| `npm run build`       | Typecheck + production build to `dist/`    |
+| `npm run preview`     | Serve the built bundle locally             |
+| `npm run typecheck`   | `tsc -b` only, no emit                     |
+| `npm run lint`        | ESLint over `src/` and `tests/`            |
+| `npm run lint:fix`    | ESLint with `--fix`                        |
+| `npm run fmt`         | Prettier check (used in CI)                |
+| `npm run fmt:fix`     | Prettier write across the repo             |
+| `npm run e2e`         | Run Playwright E2E tests                   |
+| `npm run e2e:ui`      | Playwright UI mode                         |
+| `npm run e2e:install` | Install dependencies for UI tests          |
 
 ### VSCode
 
@@ -73,15 +73,14 @@ Workspace settings in [.vscode/settings.json](.vscode/settings.json) enable form
 
 Playwright tests live in [tests/](tests/) and use shared testids from [tests/helpers/testids.ts](tests/helpers/testids.ts). The Playwright config spawns its own dev server on `:5273` (`dev:e2e`) so it never collides with a running `npm run dev` on `:5173`.
 
-Test fixtures (1-frame pink image, 1-second silent video, 1-second silent audio) live in [public/test-fixtures/](public/test-fixtures/) and are generated with `ffmpeg`. They are committed so tests run offline.
+Test fixtures (1-frame pink image, 1-second silent video, 1-second silent audio) live in [public/test-fixtures/](public/test-fixtures/) and are generated with `ffmpeg`. They are committed so tests run deterministically.
 
 ```bash
-npm test                       # all specs, headless
-npm run test:ui                # interactive UI
-npx playwright test creator    # single file
+npm run e2e                   # all specs, headless
+npm run e2e:ui                # interactive UI
 ```
 
-Spec coverage:
+Playwright spec coverage:
 
 - [creator.spec.ts](tests/creator.spec.ts) — composer URL state, mode toggle, reset, share-enable rules
 - [preview.spec.ts](tests/preview.spec.ts) — image / direct video / YouTube rendering, the `muted` attribute gotcha, overlays, maximize
@@ -96,9 +95,7 @@ Spec coverage:
 npm run build
 ```
 
-Output goes to `dist/`. The SPA fallback for client-side routing is configured via [public/\_redirects](public/_redirects) (`/* /index.html 200`), which works on Cloudflare Pages and Netlify.
-
-CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs typecheck, lint, format-check, build, and Playwright tests on every push and PR to `main`.
+CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs typecheck, lint-check, format-check, build, and Playwright tests on every push and PR to `main`.
 
 ## Architecture notes
 
@@ -106,7 +103,3 @@ CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs typecheck, lint, 
 - **YouTube integration is `postMessage`-only.** The app does not load `https://www.youtube.com/iframe_api` or touch `window.YT`. See [src/utils/youtube.ts](src/utils/youtube.ts) and the `infoDelivery` listener in [src/components/Preview.tsx](src/components/Preview.tsx).
 - **Theme FOUC is prevented** by an inline script in [index.html](index.html) that sets `class="dark"` on `<html>` before any stylesheet loads.
 - **The `<video>` element omits the `muted` attribute entirely** when there's no custom audio track (rather than `muted={false}`). Browsers treat `muted` as a boolean attribute whose mere presence mutes the element regardless of value, so `muted={false}` would mute and prevent native audio playback. This is enforced by [tests/preview.spec.ts](tests/preview.spec.ts).
-
-## License
-
-No license file. Treat as all rights reserved unless told otherwise.

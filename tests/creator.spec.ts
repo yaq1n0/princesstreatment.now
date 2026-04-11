@@ -6,7 +6,7 @@ test.describe('CreatorPage', () => {
     await page.goto('/');
     await expect(page.getByTestId(tid.previewEmpty)).toBeVisible();
     await expect(page.getByTestId(tid.shareButton)).toBeDisabled();
-    await expect(page).toHaveTitle('Request Princess Treatment NOW');
+    await expect(page).toHaveTitle('Princess Treatment NOW');
     await expect(page.locator('header')).toContainText('Request Princess Treatment NOW');
   });
 
