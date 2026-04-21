@@ -7,7 +7,7 @@
     "dev": "vite",
     "dev:e2e": "vite --port 5273 --strictPort",
     "build": "tsc -b && vite build",
-    "preview": "vite preview",
+    "preview": "npm run build && wrangler dev",
     "typecheck": "tsc -b",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -15,7 +15,8 @@
     "fmt:fix": "prettier --write .",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
-    "e2e:install": "npx playwright install --with-deps chromium"
+    "e2e:install": "npx playwright install --with-deps chromium",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",
@@ -28,6 +29,7 @@
     "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.33.0",
     "@eslint/js": "^9.39.4",
     "@playwright/test": "^1.59.1",
     "@types/node": "^24.12.2",
@@ -42,6 +44,7 @@
     "prettier": "^3.4.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.0",
-    "vite": "^8.0.4"
+    "vite": "^8.0.4",
+    "wrangler": "^4.84.0"
   }
 }
