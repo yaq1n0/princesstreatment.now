@@ -19,3 +19,16 @@ export function detectMediaKind(src: string): MediaKind {
   if (VIDEO_EXT.test(src)) return 'video-direct';
   return 'image';
 }
+
+export type AudioKind = 'none' | 'direct' | 'youtube';
+
+/**
+ * Detect what kind of audio a URL represents:
+ * - YouTube links → hidden iframe (audio track of the video)
+ * - Anything else non-empty → direct <audio> element
+ */
+export function detectAudioKind(url: string): AudioKind {
+  if (!url) return 'none';
+  if (isYouTubeUrl(url)) return 'youtube';
+  return 'direct';
+}

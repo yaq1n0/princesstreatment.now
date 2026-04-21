@@ -15,7 +15,7 @@ export default function AudioInput({ audio, hasVideo, onChange }: Props) {
         type="text"
         data-testid="audio-input"
         value={audio}
-        placeholder="Paste an audio URL (optional)"
+        placeholder="Paste an audio URL or YouTube link (optional)"
         onChange={(e) => onChange(e.target.value)}
         className="w-full px-3 py-2 rounded-md border border-princess-200 bg-white dark:bg-princess-900 dark:border-princess-700 focus:outline-none focus:ring-2 focus:ring-princess-400"
       />

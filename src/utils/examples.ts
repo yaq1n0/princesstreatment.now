@@ -113,4 +113,10 @@ export const audioExamples: ExampleItem[] = [
     url: 'https://archive.org/download/SadViolinPart1/SadViolin.mp3',
     label: 'Sad violin (full)',
   },
+  // YouTube-as-audio: the URL is played via a hidden iframe in Preview.
+  {
+    kind: 'youtube',
+    url: 'https://www.youtube.com/watch?v=RHuhsNtp9As',
+    label: 'Sad hamster violin (YT)',
+  },
 ];

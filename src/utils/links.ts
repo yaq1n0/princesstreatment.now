@@ -18,7 +18,7 @@ export const linkInfo: Record<LinkKind, string> = {
   media:
     'Paste a direct image URL (.png, .jpg, .gif, .webp), a direct video URL (.mp4, .webm), or any YouTube link (youtu.be, youtube.com/watch, /shorts, /embed). Page links to image galleries or other video sites will not work — use the direct file URL.',
   audio:
-    'Paste a direct audio file URL (.mp3 / .ogg / .wav). SoundCloud and Spotify page links will not work — use a direct file URL.',
+    'Paste a direct audio file URL (.mp3 / .ogg / .wav), or any YouTube link (youtu.be, youtube.com/watch, /shorts) — we use the video\'s audio track via a hidden player. SoundCloud and Spotify page links will not work.',
 };
 
 /** Recommended, hotlink-friendly sources per input kind. */
@@ -61,6 +61,11 @@ export const linkSources: Record<LinkKind, LinkSource[]> = {
     },
   ],
   audio: [
+    {
+      name: 'YouTube',
+      url: 'https://youtube.com/',
+      note: 'Any watch / shorts / youtu.be link — played via a hidden embed for its audio.',
+    },
     {
       name: 'Catbox',
       url: 'https://catbox.moe/',

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay } from '@fortawesome/free-solid-svg-icons';
 import { buildYouTubeEmbedUrl, getYouTubeId, postYouTubeCommand } from '../utils/youtube';
-import { detectMediaKind } from '../utils/media';
+import { detectAudioKind, detectMediaKind } from '../utils/media';
 
 interface Props {
   src: string;
@@ -16,13 +16,31 @@ export default function Preview({ src, audio, top, bottom, fullscreen }: Props) 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const audioIframeRef = useRef<HTMLIFrameElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
   const kind = detectMediaKind(src);
-  const hasAudio = !!audio;
+  const audioKind = detectAudioKind(audio);
+  const hasAudio = audioKind !== 'none';
   const hasPlayableMedia =
     kind === 'video-direct' || kind === 'video-youtube' || (kind === 'image' && hasAudio);
   const isEmpty = !src && !top && !bottom;
+
+  const playAudio = useCallback(() => {
+    if (audioKind === 'youtube') {
+      postYouTubeCommand(audioIframeRef.current, 'playVideo');
+    } else if (audioKind === 'direct') {
+      void audioRef.current?.play().catch(() => {});
+    }
+  }, [audioKind]);
+
+  const pauseAudio = useCallback(() => {
+    if (audioKind === 'youtube') {
+      postYouTubeCommand(audioIframeRef.current, 'pauseVideo');
+    } else if (audioKind === 'direct') {
+      audioRef.current?.pause();
+    }
+  }, [audioKind]);
 
   // Reset playback state when the media source changes. Uses the React-docs "adjusting
   // state during render" pattern so that it doesn't trigger cascading renders like useEffect would.
@@ -34,27 +52,32 @@ export default function Preview({ src, audio, top, bottom, fullscreen }: Props) 
     setIsPlaying(false);
   }
 
-  // Direct video + audio sync
+  // Direct video + audio sync. For YouTube-audio we can only play/pause — the iframe
+  // can't be precisely scrubbed without loading the full YT IFrame API SDK, so `seeked`
+  // is a no-op in that case and the audio continues from wherever YT left it.
   useEffect(() => {
     if (kind !== 'video-direct' || !hasAudio) return;
     const video = videoRef.current;
-    const audioEl = audioRef.current;
-    if (!video || !audioEl) return;
+    if (!video) return;
 
     const onPlay = () => {
-      audioEl.currentTime = video.currentTime;
-      void audioEl.play().catch(() => {});
+      if (audioKind === 'direct' && audioRef.current) {
+        audioRef.current.currentTime = video.currentTime;
+      }
+      playAudio();
       setIsPlaying(true);
     };
     const onPause = () => {
-      audioEl.pause();
+      pauseAudio();
       setIsPlaying(false);
     };
     const onSeeked = () => {
-      audioEl.currentTime = video.currentTime;
+      if (audioKind === 'direct' && audioRef.current) {
+        audioRef.current.currentTime = video.currentTime;
+      }
     };
     const onEnded = () => {
-      audioEl.pause();
+      pauseAudio();
       setIsPlaying(false);
     };
 
@@ -68,7 +91,7 @@ export default function Preview({ src, audio, top, bottom, fullscreen }: Props) 
       video.removeEventListener('seeked', onSeeked);
       video.removeEventListener('ended', onEnded);
     };
-  }, [kind, hasAudio, src, audio]);
+  }, [kind, hasAudio, audioKind, src, audio, playAudio, pauseAudio]);
 
   // Direct video without audio: track native play state
   useEffect(() => {
@@ -88,10 +111,12 @@ export default function Preview({ src, audio, top, bottom, fullscreen }: Props) 
     };
   }, [kind, hasAudio, src]);
 
-  // YouTube + audio: listen to YT postMessage events
+  // YouTube video iframe: listen to YT postMessage events for the *visible* video player.
+  // Filter by event.source so the audio-iframe's messages don't drive video-player state.
   useEffect(() => {
     if (kind !== 'video-youtube') return;
     const onMessage = (ev: MessageEvent) => {
+      if (ev.source !== iframeRef.current?.contentWindow) return;
       if (typeof ev.data !== 'string') return;
       try {
         const data = JSON.parse(ev.data);
@@ -103,7 +128,7 @@ export default function Preview({ src, audio, top, bottom, fullscreen }: Props) 
           const state = data.info.playerState as number;
           // 1=playing, 2=paused, 0=ended
           if (state === 2 || state === 0) {
-            if (audioRef.current) audioRef.current.pause();
+            pauseAudio();
             setIsPlaying(false);
           } else if (state === 1) {
             setIsPlaying(true);
@@ -115,16 +140,16 @@ export default function Preview({ src, audio, top, bottom, fullscreen }: Props) 
     };
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
-  }, [kind]);
+  }, [kind, pauseAudio]);
 
   const handlePlayClick = useCallback(() => {
     if (kind === 'image' && hasAudio) {
-      const a = audioRef.current;
-      if (!a) return;
-      void a.play().catch(() => {});
+      playAudio();
       setIsPlaying(true);
-      a.onpause = () => setIsPlaying(false);
-      a.onended = () => setIsPlaying(false);
+      if (audioKind === 'direct' && audioRef.current) {
+        audioRef.current.onpause = () => setIsPlaying(false);
+        audioRef.current.onended = () => setIsPlaying(false);
+      }
       return;
     }
     if (kind === 'video-direct') {
@@ -135,19 +160,18 @@ export default function Preview({ src, audio, top, bottom, fullscreen }: Props) 
     }
     if (kind === 'video-youtube') {
       postYouTubeCommand(iframeRef.current, 'playVideo');
-      if (hasAudio && audioRef.current) {
-        void audioRef.current.play().catch(() => {});
-      }
+      if (hasAudio) playAudio();
       setIsPlaying(true);
       return;
     }
-  }, [kind, hasAudio]);
+  }, [kind, hasAudio, audioKind, playAudio]);
 
   const rootClass = fullscreen
     ? 'relative w-full h-full bg-princess-100 dark:bg-princess-900 overflow-hidden'
     : 'relative w-full h-full bg-princess-100 dark:bg-princess-900 overflow-hidden rounded-md';
 
   const ytId = kind === 'video-youtube' ? getYouTubeId(src) : null;
+  const audioYtId = audioKind === 'youtube' ? getYouTubeId(audio) : null;
 
   return (
     <div data-testid="preview" className={rootClass}>
@@ -204,13 +228,29 @@ export default function Preview({ src, audio, top, bottom, fullscreen }: Props) 
         />
       ) : null}
 
-      {hasAudio ? (
+      {audioKind === 'direct' ? (
         <audio
           data-testid="preview-audio"
           ref={audioRef}
           src={audio}
           preload="auto"
           className="hidden"
+        />
+      ) : null}
+
+      {audioKind === 'youtube' && audioYtId ? (
+        // Hidden YT iframe used purely as an audio source. Must remain in-DOM and not
+        // `display:none` — some browsers suspend iframes that aren't laid out, which
+        // breaks the postMessage JS API. Zero-size + transparent + no pointer events
+        // keeps it out of the way while still functional.
+        <iframe
+          data-testid="preview-audio-youtube"
+          ref={audioIframeRef}
+          src={buildYouTubeEmbedUrl(audioYtId, { mute: false })}
+          title="YouTube audio"
+          allow="autoplay; encrypted-media"
+          className="absolute w-0 h-0 opacity-0 pointer-events-none border-0"
+          aria-hidden="true"
         />
       ) : null}
 

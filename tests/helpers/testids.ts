@@ -5,6 +5,7 @@ export const tid = {
   previewVideo: 'preview-video',
   previewYoutube: 'preview-youtube',
   previewAudio: 'preview-audio',
+  previewAudioYoutube: 'preview-audio-youtube',
   previewTop: 'preview-top',
   previewBottom: 'preview-bottom',
   previewPlay: 'preview-play',
