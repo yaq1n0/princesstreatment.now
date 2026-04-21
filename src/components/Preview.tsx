@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faCompress } from '@fortawesome/free-solid-svg-icons';
 import { buildYouTubeEmbedUrl, getYouTubeId, postYouTubeCommand } from '../utils/youtube';
 import { detectAudioKind, detectMediaKind, resolveMediaSrc } from '../utils/media';
+import ShareButton from './ShareButton';
 
 interface Props {
   src: string;
@@ -10,9 +11,23 @@ interface Props {
   top: string;
   bottom: string;
   fullscreen?: boolean;
+  /** When set, render a minimise button in the top-left overlay slot. */
+  onMinimise?: () => void;
+  /** When set, render a share button in the bottom-right overlay slot. */
+  shareUrl?: string;
+  onShareToast?: (msg: string) => void;
 }
 
-export default function Preview({ src, audio, top, bottom, fullscreen }: Props) {
+export default function Preview({
+  src,
+  audio,
+  top,
+  bottom,
+  fullscreen,
+  onMinimise,
+  shareUrl,
+  onShareToast,
+}: Props) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -45,9 +60,6 @@ export default function Preview({ src, audio, top, bottom, fullscreen }: Props) 
     }
   }, [audioKind]);
 
-  // Reset playback state when the media source changes. Uses the React-docs "adjusting
-  // state during render" pattern so that it doesn't trigger cascading renders like useEffect would.
-  // https://react.dev/reference/react/useState#storing-information-from-previous-renders
   const mediaKey = `${src}|${audio}`;
   const [prevMediaKey, setPrevMediaKey] = useState(mediaKey);
   if (prevMediaKey !== mediaKey) {
@@ -55,9 +67,6 @@ export default function Preview({ src, audio, top, bottom, fullscreen }: Props) 
     setIsPlaying(false);
   }
 
-  // Direct video + audio sync. For YouTube-audio we can only play/pause — the iframe
-  // can't be precisely scrubbed without loading the full YT IFrame API SDK, so `seeked`
-  // is a no-op in that case and the audio continues from wherever YT left it.
   useEffect(() => {
     if (kind !== 'video-direct' || !hasAudio) return;
     const video = videoRef.current;
@@ -96,7 +105,6 @@ export default function Preview({ src, audio, top, bottom, fullscreen }: Props) 
     };
   }, [kind, hasAudio, audioKind, src, audio, playAudio, pauseAudio]);
 
-  // Direct video without audio: track native play state
   useEffect(() => {
     if (kind !== 'video-direct' || hasAudio) return;
     const video = videoRef.current;
@@ -114,8 +122,6 @@ export default function Preview({ src, audio, top, bottom, fullscreen }: Props) 
     };
   }, [kind, hasAudio, src]);
 
-  // YouTube video iframe: listen to YT postMessage events for the *visible* video player.
-  // Filter by event.source so the audio-iframe's messages don't drive video-player state.
   useEffect(() => {
     if (kind !== 'video-youtube') return;
     const onMessage = (ev: MessageEvent) => {
@@ -129,7 +135,6 @@ export default function Preview({ src, audio, top, bottom, fullscreen }: Props) 
           typeof data.info.playerState === 'number'
         ) {
           const state = data.info.playerState as number;
-          // 1=playing, 2=paused, 0=ended
           if (state === 2 || state === 0) {
             pauseAudio();
             setIsPlaying(false);
@@ -253,10 +258,6 @@ export default function Preview({ src, audio, top, bottom, fullscreen }: Props) 
       ) : null}
 
       {audioKind === 'youtube' && audioYtId ? (
-        // Hidden YT iframe used purely as an audio source. Must remain in-DOM and not
-        // `display:none` — some browsers suspend iframes that aren't laid out, which
-        // breaks the postMessage JS API. Zero-size + transparent + no pointer events
-        // keeps it out of the way while still functional.
         <iframe
           data-testid="preview-audio-youtube"
           ref={audioIframeRef}
@@ -271,18 +272,39 @@ export default function Preview({ src, audio, top, bottom, fullscreen }: Props) 
       {top ? (
         <div
           data-testid="preview-top"
-          className="overlay-text absolute top-3 left-0 right-0 text-center text-2xl md:text-4xl px-4 pointer-events-none"
+          className="overlay-text absolute top-3 left-0 right-0 text-center text-2xl md:text-4xl px-14 pointer-events-none z-10"
         >
           {top}
         </div>
       ) : null}
-
       {bottom ? (
         <div
           data-testid="preview-bottom"
-          className="overlay-text absolute bottom-3 left-0 right-0 text-center text-2xl md:text-4xl px-4 pointer-events-none"
+          className="overlay-text absolute bottom-3 left-0 right-0 text-center text-2xl md:text-4xl px-14 pointer-events-none z-10"
         >
           {bottom}
+        </div>
+      ) : null}
+
+      {onMinimise ? (
+        <button
+          type="button"
+          data-testid="minimize"
+          onClick={onMinimise}
+          aria-label="Minimize"
+          className="absolute top-3 left-3 z-20 inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/80 text-princess-700 hover:bg-white shadow"
+        >
+          <FontAwesomeIcon icon={faCompress} />
+        </button>
+      ) : null}
+      {shareUrl !== undefined ? (
+        <div className="absolute bottom-3 right-3 z-20">
+          <ShareButton
+            variant="icon"
+            url={shareUrl}
+            disabled={!shareUrl}
+            onToast={onShareToast ?? (() => {})}
+          />
         </div>
       ) : null}
 

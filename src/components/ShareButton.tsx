@@ -6,9 +6,16 @@ interface Props {
   disabled?: boolean;
   onToast: (msg: string) => void;
   className?: string;
+  variant?: 'full' | 'icon';
 }
 
-export default function ShareButton({ url, disabled, onToast, className }: Props) {
+export default function ShareButton({
+  url,
+  disabled,
+  onToast,
+  className,
+  variant = 'full',
+}: Props) {
   const handleClick = async () => {
     if (disabled) return;
     const nav = navigator as Navigator & {
@@ -18,8 +25,6 @@ export default function ShareButton({ url, disabled, onToast, className }: Props
       try {
         await nav.share({ title: 'Request Princess Treatment NOW', url });
       } catch (err) {
-        // Plan: catch AbortError silently. Any other share failure is also
-        // swallowed — the user still has the URL in the address bar.
         if ((err as DOMException)?.name !== 'AbortError') {
           // no-op
         }
@@ -33,6 +38,21 @@ export default function ShareButton({ url, disabled, onToast, className }: Props
       // ignore
     }
   };
+
+  if (variant === 'icon') {
+    return (
+      <button
+        type="button"
+        data-testid="share-button"
+        disabled={disabled}
+        onClick={handleClick}
+        aria-label="Share"
+        className={`inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/80 text-princess-700 hover:bg-white shadow disabled:opacity-50 disabled:cursor-not-allowed ${className ?? ''}`}
+      >
+        <FontAwesomeIcon icon={faShareNodes} />
+      </button>
+    );
+  }
 
   return (
     <button
