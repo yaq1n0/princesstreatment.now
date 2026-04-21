@@ -46,7 +46,7 @@ export default function CreatorPage() {
             onTopChange={(v) => setField('top', v)}
             onBottomChange={(v) => setField('bottom', v)}
           />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-end gap-3">
             <ShareButton url={buildViewUrl()} disabled={!hasAnything} onToast={show} />
             <ResetButton onClick={reset} />
           </div>
