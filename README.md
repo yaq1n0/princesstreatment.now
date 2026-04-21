@@ -31,15 +31,43 @@ Navigation between the two preserves the full query string verbatim. The Reset b
 | `top`    | string | Optional overlay text, top-aligned         |
 | `bottom` | string | Optional overlay text, bottom-aligned      |
 
-Standard `URLSearchParams` encoding. YouTube URLs (`youtube.com/watch?v=`, `youtu.be/`, `youtube.com/shorts/`, `youtube.com/embed/`) are detected and rendered via the privacy-friendly `youtube-nocookie.com` embed.
+Standard `URLSearchParams` encoding.
 
-### Example links
+## Supported media
 
-```
-/?src=https%3A%2F%2Fexample.com%2Fpic.png&top=hello&bottom=world
-/?&src=https%3A%2F%2Fyoutu.be%2FdQw4w9WgXcQ&audio=https%3A%2F%2Fexample.com%2Ftrack.mp3
-/view&src=https%3A%2F%2Fexample.com%2Fpic.png
-```
+This is the source-of-truth audit of what `src` and `audio` accept and how each combination renders. The E2E matrix in [tests/media.matrix.spec.ts](tests/media.matrix.spec.ts) mirrors this table 1:1.
+
+### Visual `src` kinds (`MediaKind`)
+
+| Kind                     | Trigger                                                                          | Render                                                                         | Detected at                              |
+| ------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------- |
+| `image`                  | Fallback for any URL not matching below                                          | `<img>`                                                                        | [media.ts:19](src/utils/media.ts#L19)    |
+| `iframe` (Tenor embed)   | `tenor.com/[locale/]view/…-gif-<id>`                                             | `<iframe src=tenor.com/embed/<id>>`                                            | [hosts.ts:8,22](src/utils/hosts.ts#L8)   |
+| `image` (Giphy resolved) | `giphy.com/gifs/…-<id>` → `media.giphy.com/media/<id>/giphy.gif`                 | `<img>`                                                                        | [hosts.ts:9,27](src/utils/hosts.ts#L9)   |
+| `image` (Imgur single)   | `imgur.com/<5–8 char id>` (album/gallery rejected)                               | `<img src=i.imgur.com/<id>.gif>`                                               | [hosts.ts:10,32](src/utils/hosts.ts#L10) |
+| `video-direct`           | Extension `.mp4 .webm .mov .ogv .m4v`                                            | `<video>` (omits `muted` attr when no audio)                                   | [media.ts:6,18](src/utils/media.ts#L6)   |
+| `video-youtube`          | `youtube.com/watch?v=`, `youtu.be/`, `youtube.com/shorts/`, `youtube.com/embed/` | `youtube-nocookie.com` iframe, `enablejsapi=1&rel=0&playsinline=1&mute={0\|1}` | [youtube.ts:8](src/utils/youtube.ts#L8)  |
+
+YouTube is always rendered via the privacy-friendly `youtube-nocookie.com` embed.
+
+### Audio `audio` kinds (`AudioKind`)
+
+| Kind      | Trigger                | Render                                                                                    |
+| --------- | ---------------------- | ----------------------------------------------------------------------------------------- |
+| `direct`  | Any non-YouTube URL    | `<audio>`                                                                                 |
+| `youtube` | Matches `isYouTubeUrl` | Hidden `youtube-nocookie` iframe; when paired with `video-direct`, the `<video>` is muted |
+
+### (visual × audio) combinations
+
+Rows = visual `src`, columns = `audio`.
+
+| visual \ audio | none                                        | direct audio URL                     | youtube audio                               |
+| -------------- | ------------------------------------------- | ------------------------------------ | ------------------------------------------- |
+| none           | blank creator (text-only artifact is valid) | audio-only playable                  | audio-only playable                         |
+| image          | image shown                                 | image + audio controls               | image + hidden YT iframe                    |
+| iframe (Tenor) | embed shown                                 | embed + audio controls               | embed + hidden YT iframe                    |
+| video-direct   | native video w/ its own audio               | video muted + audio controls, synced | video muted + hidden YT iframe, synced      |
+| video-youtube  | YT iframe unmuted                           | YT iframe muted + audio controls     | two YT iframes (video muted, audio unmuted) |
 
 ## Development
 
@@ -82,9 +110,9 @@ npm run e2e:ui                # interactive UI
 
 Playwright spec coverage:
 
+- [media.matrix.spec.ts](tests/media.matrix.spec.ts) — full (visual × audio) matrix; see "Supported media" above
 - [creator.spec.ts](tests/creator.spec.ts) — composer URL state, mode toggle, reset, share-enable rules
-- [preview.spec.ts](tests/preview.spec.ts) — image / direct video / YouTube rendering, the `muted` attribute gotcha, overlays, maximize
-- [playback.spec.ts](tests/playback.spec.ts) — image+audio and video+audio playback sync
+- [hosts.spec.ts](tests/hosts.spec.ts) — unit tests for Tenor/Giphy/Imgur host detection and URL rewriting
 - [view.spec.ts](tests/view.spec.ts) — fullscreen view, minimize, round-trip
 - [theme.spec.ts](tests/theme.spec.ts) — system preference + toggle persistence
 - [share.spec.ts](tests/share.spec.ts) — clipboard fallback when `navigator.share` is unavailable

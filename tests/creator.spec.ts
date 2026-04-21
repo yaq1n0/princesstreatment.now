@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { tid } from './helpers/testids';
+import { tid, exampleItem } from './helpers/testids';
+import { DEAD_URL, IMAGE, gotoCreator } from './helpers/media';
+import { mediaExamples } from '../src/utils/examples';
 
 test.describe('CreatorPage', () => {
   test('initial state: empty preview, share disabled, title and header', async ({ page }) => {
@@ -76,6 +78,40 @@ test.describe('CreatorPage', () => {
     await expect(page.getByTestId(tid.audioInput)).toHaveValue('');
     await expect(page.getByTestId(tid.previewEmpty)).toBeVisible();
     await expect(page.getByTestId(tid.shareButton)).toBeDisabled();
+  });
+
+  test('overlays render with top and bottom text from URL', async ({ page }) => {
+    await gotoCreator(page, { src: IMAGE, top: 'hello', bottom: 'world' });
+    await expect(page.getByTestId(tid.previewTop)).toContainText('hello');
+    await expect(page.getByTestId(tid.previewBottom)).toContainText('world');
+  });
+
+  test('carousel item click fills src and renders matching preview', async ({ page }) => {
+    await page.goto('/');
+    const first = mediaExamples[0];
+    await page.getByTestId(exampleItem('media', 0)).click();
+
+    const url = new URL(page.url());
+    expect(url.searchParams.get('src')).toBe(first.url);
+
+    await expect(page.getByTestId(tid.preview)).toBeVisible();
+    const expectedVisualTid =
+      first.kind === 'image'
+        ? tid.previewImage
+        : first.kind === 'iframe'
+          ? tid.previewIframe
+          : first.kind === 'video'
+            ? tid.previewVideo
+            : tid.previewYoutube;
+    await expect(page.getByTestId(expectedVisualTid)).toHaveCount(1);
+  });
+
+  test('dead src URL does not crash the page', async ({ page }) => {
+    const pageErrors: Error[] = [];
+    page.on('pageerror', (e) => pageErrors.push(e));
+    await gotoCreator(page, { src: DEAD_URL });
+    await expect(page.getByTestId(tid.previewImage)).toHaveCount(1);
+    expect(pageErrors).toEqual([]);
   });
 
   test('share enabled when any single field is set', async ({ page }) => {

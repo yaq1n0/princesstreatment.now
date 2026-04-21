@@ -2,6 +2,7 @@ export const tid = {
   preview: 'preview',
   previewEmpty: 'preview-empty',
   previewImage: 'preview-image',
+  previewIframe: 'preview-iframe',
   previewVideo: 'preview-video',
   previewYoutube: 'preview-youtube',
   previewAudio: 'preview-audio',
@@ -13,12 +14,19 @@ export const tid = {
   maximize: 'maximize',
   minimize: 'minimize',
   srcInput: 'src-input',
+  srcClear: 'src-clear',
   audioInput: 'audio-input',
+  audioClear: 'audio-clear',
   audioNote: 'audio-note',
   topInput: 'top-input',
+  topClear: 'top-clear',
   bottomInput: 'bottom-input',
+  bottomClear: 'bottom-clear',
   shareButton: 'share-button',
   resetButton: 'reset-button',
   themeToggle: 'theme-toggle',
   toast: 'toast',
 } as const;
+
+// Carousel items use a per-index testid `{prefix}-example-{i}`.
+export const exampleItem = (prefix: 'media' | 'audio', i: number) => `${prefix}-example-${i}`;
