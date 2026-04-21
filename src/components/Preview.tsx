@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay } from '@fortawesome/free-solid-svg-icons';
 import { buildYouTubeEmbedUrl, getYouTubeId, postYouTubeCommand } from '../utils/youtube';
-import { detectAudioKind, detectMediaKind } from '../utils/media';
+import { detectAudioKind, detectMediaKind, resolveMediaSrc } from '../utils/media';
 
 interface Props {
   src: string;
@@ -20,10 +20,13 @@ export default function Preview({ src, audio, top, bottom, fullscreen }: Props) 
   const [isPlaying, setIsPlaying] = useState(false);
 
   const kind = detectMediaKind(src);
+  const resolvedSrc = resolveMediaSrc(src);
   const audioKind = detectAudioKind(audio);
   const hasAudio = audioKind !== 'none';
   const hasPlayableMedia =
-    kind === 'video-direct' || kind === 'video-youtube' || (kind === 'image' && hasAudio);
+    kind === 'video-direct' ||
+    kind === 'video-youtube' ||
+    ((kind === 'image' || kind === 'iframe') && hasAudio);
   const isEmpty = !src && !top && !bottom;
 
   const playAudio = useCallback(() => {
@@ -143,7 +146,7 @@ export default function Preview({ src, audio, top, bottom, fullscreen }: Props) 
   }, [kind, pauseAudio]);
 
   const handlePlayClick = useCallback(() => {
-    if (kind === 'image' && hasAudio) {
+    if ((kind === 'image' || kind === 'iframe') && hasAudio) {
       playAudio();
       setIsPlaying(true);
       if (audioKind === 'direct' && audioRef.current) {
@@ -186,9 +189,20 @@ export default function Preview({ src, audio, top, bottom, fullscreen }: Props) 
       {kind === 'image' && src ? (
         <img
           data-testid="preview-image"
-          src={src}
+          src={resolvedSrc}
           alt=""
           className="absolute inset-0 w-full h-full object-contain"
+        />
+      ) : null}
+
+      {kind === 'iframe' && src ? (
+        <iframe
+          data-testid="preview-iframe"
+          src={resolvedSrc}
+          title="Embedded media"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className="absolute inset-0 w-full h-full border-0"
         />
       ) : null}
 

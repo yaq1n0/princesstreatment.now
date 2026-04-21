@@ -3,6 +3,7 @@ import type { KeyboardEvent, MouseEvent } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faMusic, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { getYouTubeId } from '../utils/youtube';
+import { resolveMediaUrl } from '../utils/hosts';
 import type { ExampleItem } from '../utils/examples';
 
 interface Props {
@@ -93,6 +94,33 @@ function ExampleCarouselItem({ testId, item, selected, onSelect }: ItemProps) {
         <img src={item.url} alt="" className="w-full h-full object-cover" loading="lazy" />
         {selected ? <SelectedBadge /> : null}
       </button>
+    );
+  }
+
+  if (item.kind === 'iframe') {
+    const resolved = resolveMediaUrl(item.url);
+    return (
+      <div
+        data-testid={testId}
+        data-kind="iframe"
+        role="button"
+        tabIndex={0}
+        onClick={onSelect}
+        onKeyDown={onKeyDown}
+        title={item.label}
+        aria-label={`Use example: ${item.label}`}
+        className={`${baseClass} w-32 h-20 bg-princess-100 dark:bg-princess-900 cursor-pointer`}
+      >
+        {resolved ? (
+          <iframe
+            src={resolved.src}
+            title={item.label}
+            loading="lazy"
+            className="absolute inset-0 w-full h-full border-0 pointer-events-none"
+          />
+        ) : null}
+        {selected ? <SelectedBadge /> : null}
+      </div>
     );
   }
 

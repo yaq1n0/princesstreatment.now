@@ -16,9 +16,9 @@ export interface LinkSource {
 /** Info blurb shown when the user clicks the (i) button next to an input. */
 export const linkInfo: Record<LinkKind, string> = {
   media:
-    'Paste a direct image URL (.png, .jpg, .gif, .webp), a direct video URL (.mp4, .webm), or any YouTube link (youtu.be, youtube.com/watch, /shorts, /embed). Page links to image galleries or other video sites will not work — use the direct file URL.',
+    'Paste a YouTube link, a Tenor / Giphy / Imgur page URL, or a direct image/video URL (.png, .jpg, .gif, .webp, .mp4, .webm). Most page URLs from these hosts will just work.',
   audio:
-    'Paste a direct audio file URL (.mp3 / .ogg / .wav), or any YouTube link (youtu.be, youtube.com/watch, /shorts) — we use the video\'s audio track via a hidden player. SoundCloud and Spotify page links will not work.',
+    "Paste any YouTube link (youtu.be, youtube.com/watch, /shorts) — we use the video's audio track via a hidden player.",
 };
 
 /** Recommended, hotlink-friendly sources per input kind. */
@@ -30,34 +30,19 @@ export const linkSources: Record<LinkKind, LinkSource[]> = {
       note: 'Any watch / shorts / youtu.be link — embedded automatically.',
     },
     {
-      name: 'Catbox',
-      url: 'https://catbox.moe/',
-      note: 'Free anonymous file host for direct images and .mp4 files via files.catbox.moe.',
-    },
-    {
       name: 'Imgur',
       url: 'https://imgur.com/',
-      note: 'Right-click an image → "Copy image address" to get an i.imgur.com URL.',
+      note: 'Paste the image page URL (imgur.com/<id>) — we resolve it automatically.',
     },
     {
       name: 'Tenor',
       url: 'https://tenor.com/',
-      note: 'Right-click a GIF → "Copy image address" to get a media.tenor.com URL.',
+      note: 'Paste any Tenor GIF page URL — embedded automatically.',
     },
     {
       name: 'Giphy',
       url: 'https://giphy.com/',
-      note: 'Right-click a GIF → "Copy image address" to get a media.giphy.com URL.',
-    },
-    {
-      name: 'Wikimedia',
-      url: 'https://commons.wikimedia.org/',
-      note: 'Public-domain media, served from upload.wikimedia.org.',
-    },
-    {
-      name: 'Internet Archive',
-      url: 'https://archive.org/details/movies',
-      note: 'Public-domain clips. Use the direct .mp4 download URL.',
+      note: 'Paste any Giphy GIF page URL — resolved automatically.',
     },
   ],
   audio: [
@@ -65,21 +50,6 @@ export const linkSources: Record<LinkKind, LinkSource[]> = {
       name: 'YouTube',
       url: 'https://youtube.com/',
       note: 'Any watch / shorts / youtu.be link — played via a hidden embed for its audio.',
-    },
-    {
-      name: 'Catbox',
-      url: 'https://catbox.moe/',
-      note: 'Free host for direct .mp3 files via files.catbox.moe.',
-    },
-    {
-      name: 'Internet Archive',
-      url: 'https://archive.org/details/audio',
-      note: 'Huge free library. Use the direct .mp3 download URL.',
-    },
-    {
-      name: 'Pixabay Music',
-      url: 'https://pixabay.com/music/',
-      note: 'Royalty-free music with downloadable MP3s you can self-host.',
     },
   ],
 };
